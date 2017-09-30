@@ -23,15 +23,19 @@ class CharSprite(pygame.sprite.Sprite):
         self.rect.center = self.position
         self.dx, self.dy = 0,0
         self.speed = (0,0)
+        self.fall = True
 
     def update(self, deltat):
         # SIMULATION
-        if self.position[1] < 580:
+        if self.position[1] == 580:
+            self.fall = False
+            if self.dy > 0 or self.dy < -14:
+                self.dy = 0
+        if self.fall:
             self.dy += self.GRAVITY
             if self.dy > self.MAX_DOWN_SPEED:
                 self.dy = self.MAX_DOWN_SPEED
-        else:
-            self.dy = 0
+
         self.speed = (self.dx,self.dy)
         x, y = self.position
         self.position = tuple(map(sum,zip((x,y),self.speed)))
@@ -54,6 +58,7 @@ class CharSprite(pygame.sprite.Sprite):
     def jump(self, direction):
         if not self.jump_t and self.dy == 0:
             self.dy += self.JUMP_FORCE
+            self.fall = True
 
 # CREATE CHARACTER AND RUN
 rect = screen.get_rect()
