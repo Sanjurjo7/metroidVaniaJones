@@ -24,6 +24,10 @@ class Spritesheet(object):
         "Loads multiple images, supply a list of coordinates"
         return [self.image_at(rect, colorkey) for rect in rects]
 
+    def imagesR_at(self, rects, colorkey=None):
+        "Loads inverted multiple images"
+        return [pygame.transform.flip(self.image_at(rect, colorkey),True,False) for rect in rects]
+
     # Load a strip of images as a list
     def load_strip(self, rect, image_count, colorkey=None):
         "Loads a strip of images and returns them as a list."

@@ -4,17 +4,18 @@ from pygame.locals import *
 
 screen = pygame.display.set_mode((1024,768))
 clock = pygame.time.Clock()
+transp = (255,0,255)
 
 class CharSprite(pygame.sprite.Sprite):
     GRAVITY = 2
     MAX_DOWN_SPEED = 100
     RUN_SPEED = 10
     JUMP_FORCE = -14
-    spritesheet = spritesheet.Spritesheet('JonesSheet.png')
+    spritesheetJ = spritesheet.Spritesheet('JonesSheet.png')
 
     def __init__(self, image, position):
         pygame.sprite.Sprite.__init__(self)
-        self.image = self.spritesheet.image_at((128,0,32,64))
+        self.image = self.spritesheetJ.image_at((128,0,32,64))
         self.position = position
         self.direction = 'right'
         self.rect = self.image.get_rect()
@@ -36,26 +37,37 @@ class CharSprite(pygame.sprite.Sprite):
             self.dy += self.GRAVITY
             if self.dy > self.MAX_DOWN_SPEED:
                 self.dy = self.MAX_DOWN_SPEED
-            self.anim_cycle('jump')
+            self.anim_cycle('jump', 'right')
 
+        # Calculate speed vectors
         self.speed = (self.dx,self.dy)
         x, y = self.position
         self.position = tuple(map(sum,zip((x,y),self.speed)))
+       
         # Gather image and ready display
+        # FIXME: Images display and refresh too quickly
         self.image = self.curr_anim[self.frame]
-        self.frame += self.frame%len(self.curr_anim)
+        self.frame += 1
+        self.frame = self.frame%len(self.curr_anim)
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
-    def anim_cycle(self, name):
+    def anim_cycle(self, name, direction):
         animations = {
             'idle': [
-                (0,0,32,64), (32,0,32,64), (64,0,32,64), (96,0,32,64)],
+                (0,0,32,64),(32,0,32,64),
+                (64,0,32,64),(96,0,32,64)],
             'jump': [
-                (288,0,32,64),(320,0,32,64),(352,0,32,64),(382,0,32,64)],
+                (288,0,32,64),(320,0,32,64),
+                (352,0,32,64),(382,0,32,64)],
             'run': [
-                (512, 0, 32, 64)] }
-        self.curr_anim = self.spritesheet.images_at(animations[name])
+                (480, 0, 32, 64),(512,0,32,64),(544,0,32,64),
+                (576,0,32,64),(608,0,32,64),] }
+        # FIXME: this code isn't causing the images to flip?
+        self.curr_anim = self.spritesheetJ.images_at(
+            animations[name], colorkey=transp)
+        if direction == 'left':
+            self.curr_anim = self.spritesheetJ.imagesR_at(animations[name], colorkey=transp)
         self.frame = 0
 
     def idle(self, direction):
@@ -63,7 +75,7 @@ class CharSprite(pygame.sprite.Sprite):
             self.fall = False
             self.dy = 0
         self.dx = 0
-        self.anim_cycle('idle')
+        self.anim_cycle('idle', 'right')
 
     def run(self, direction):
         # ANIMATION GATHER
@@ -71,10 +83,10 @@ class CharSprite(pygame.sprite.Sprite):
             for i in range(self.RUN_SPEED):
                 if direction == 'left':
                     self.dx -= 1
-                    self.anim_cycle('run')
+                    self.anim_cycle('run', 'left')
                 else:
                     self.dx += 1
-                    self.anim_cycle('run')
+                    self.anim_cycle('run', 'right')
 
     def jump(self, direction):
         if not self.fall:
@@ -87,7 +99,7 @@ character = CharSprite('idle', rect.center)
 p_group = pygame.sprite.RenderPlain(character)
 while 1:
     # USER INPUT
-    deltat = clock.tick(30)
+    deltat = clock.tick(10)
     for event in pygame.event.get():
         if not hasattr(event, 'key'): continue
         down = event.type == KEYDOWN
@@ -101,8 +113,7 @@ while 1:
         if event.key == K_ESCAPE: sys.exit(0)
 
     # RENDERING
-    screen.fill((0,0,0))
+    screen.fill((0,10,8))
     p_group.draw(screen)
     p_group.update(deltat)
-    p_group.draw(screen)
     pygame.display.flip()
