@@ -110,9 +110,9 @@ class Collideable (pygame.sprite.Sprite):
 
 # CREATE CHARACTER AND RUN
 rect = screen.get_rect()
-character = CharSprite('JonesSheet.png', rect.center)
-platform = Collideable('JonesSheet.png', (rect.center[0], rect.center[1]+200)) 
-platform2 = Collideable('JonesSheet.png', (rect.center[0]+100, rect.center[1] + 100))
+character = CharSprite('assets/JonesSheet.png', rect.center)
+platform = Collideable('assets/JonesSheet.png', (rect.center[0], rect.center[1]+200)) 
+platform2 = Collideable('assets/JonesSheet.png', (rect.center[0]+100, rect.center[1] + 100))
 p_group = pygame.sprite.Group()
 p_group.add(character)
 c_group = pygame.sprite.Group()
