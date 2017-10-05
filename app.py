@@ -29,7 +29,7 @@ class CharSprite(pygame.sprite.Sprite):
 
     def update(self, deltat, collisions):
         # SIMULATION
-        # FIXME: This does not properly handle collisions 
+        # FIXME: This does not properly handle collisions
         if collisions and self.dy > 0:
             self.fall = False
             self.dy = 0
@@ -75,21 +75,24 @@ class CharSprite(pygame.sprite.Sprite):
         self.frame = 0
 
     def idle(self):
-        self.dx = 0
+        # FIXME: This is very buggy, and stops unintended things.
+        for i in range(self.RUN_SPEED):
+            if self.direction == 'left':
+                self.dx += 1 
+            else:
+                self.dx -= 1
         self.anim_cycle('idle')
 
     def run(self, direction):
-        # ANIMATION GATHER
-        if self.position[0] < 1200:
-            for i in range(self.RUN_SPEED):
-                if direction == 'left':
-                    self.dx -= 1
-                    self.direction = 'left'
-                    self.anim_cycle('run')
-                else:
-                    self.dx += 1
-                    self.direction = 'right'
-                    self.anim_cycle('run')
+        for i in range(self.RUN_SPEED):
+            if direction == 'left':
+                self.dx -= 1
+                self.direction = 'left'
+                self.anim_cycle('run')
+            else:
+                self.dx += 1
+                self.direction = 'right'
+                self.anim_cycle('run')
 
     def jump(self):
         if not self.fall:
@@ -108,7 +111,7 @@ class Collideable (pygame.sprite.Sprite):
         self.direction = 'right'
         self.rect.center = self.position
 
-# CREATE CHARACTER AND RUN
+# CREATE CHARACTER PLATFORMS AND GROUP THEM 
 rect = screen.get_rect()
 character = CharSprite('assets/JonesSheet.png', rect.center)
 platform = Collideable('assets/JonesSheet.png', (rect.center[0], rect.center[1]+200)) 
@@ -136,7 +139,7 @@ while 1:
     # RENDERING
     screen.fill((0,10,8))
     hit = pygame.sprite.spritecollide(character,c_group, False)
-    p_group.draw(screen)
     c_group.draw(screen)
+    p_group.draw(screen)
     p_group.update(deltat,hit)
     pygame.display.flip()
