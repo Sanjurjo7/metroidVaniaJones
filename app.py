@@ -27,14 +27,15 @@ class CharSprite(pygame.sprite.Sprite):
         self.curr_anim = []
         self.frame = 0
 
-    def update(self, deltat):
+    def update(self, deltat, collisions):
         # SIMULATION
-        # FIXME: This is a placeholder for collision
-        if self.dy >= 0 and self.position[1] >= 400:
-            if self.dy > 0 or self.dy < -14:
-                self.idle()
+        # FIXME: This does not properly handle collisions 
+        if collisions and self.dy > 0:
+            self.fall = False
+            self.dy = 0
+            self.anim_cycle('idle')
         # Gravity as a constant falling force
-        if self.fall:
+        if not collisions:
             self.dy += self.GRAVITY
             if self.dy > self.MAX_DOWN_SPEED:
                 self.dy = self.MAX_DOWN_SPEED
@@ -74,9 +75,6 @@ class CharSprite(pygame.sprite.Sprite):
         self.frame = 0
 
     def idle(self):
-        if self.fall:
-            self.fall = False
-            self.dy = 0
         self.dx = 0
         self.anim_cycle('idle')
 
@@ -99,13 +97,30 @@ class CharSprite(pygame.sprite.Sprite):
             self.fall = True
             self.anim_cycle('jump')
 
+class Collideable (pygame.sprite.Sprite):
+    def __init__ (self, image_loc, position):
+        pygame.sprite.Sprite.__init__(self)
+        self.sprites = spritesheet.Spritesheet(image_loc)
+        self.image = self.sprites.image_at(
+                (0,352,64,64), colorkey=-1)
+        self.rect = self.image.get_rect()
+        self.position = position
+        self.direction = 'right'
+        self.rect.center = self.position
+
 # CREATE CHARACTER AND RUN
 rect = screen.get_rect()
 character = CharSprite('JonesSheet.png', rect.center)
-p_group = pygame.sprite.RenderPlain(character)
+platform = Collideable('JonesSheet.png', (rect.center[0], rect.center[1]+200)) 
+platform2 = Collideable('JonesSheet.png', (rect.center[0]+100, rect.center[1] + 100))
+p_group = pygame.sprite.Group()
+p_group.add(character)
+c_group = pygame.sprite.Group()
+c_group.add(platform)
+c_group.add(platform2)
 while 1:
     # USER INPUT
-    deltat = clock.tick(15)
+    deltat = clock.tick(30)
     for event in pygame.event.get():
         if not hasattr(event, 'key'): continue
         down = event.type == KEYDOWN
@@ -120,6 +135,8 @@ while 1:
 
     # RENDERING
     screen.fill((0,10,8))
+    hit = pygame.sprite.spritecollide(character,c_group, False)
     p_group.draw(screen)
-    p_group.update(deltat)
+    c_group.draw(screen)
+    p_group.update(deltat,hit)
     pygame.display.flip()
