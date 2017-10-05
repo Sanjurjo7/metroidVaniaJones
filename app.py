@@ -1,8 +1,9 @@
 # INITIALIZATION
-import pygame, math, sys, spritesheet, itertools
+import pygame, math, sys, spritesheet
 from pygame.locals import *
 
-screen = pygame.display.set_mode((1024,768))
+screen_size = HEIGHT, WIDTH = 640,480
+screen = pygame.display.set_mode(screen_size)
 clock = pygame.time.Clock()
 
 class CharSprite(pygame.sprite.Sprite):
@@ -10,11 +11,12 @@ class CharSprite(pygame.sprite.Sprite):
     MAX_DOWN_SPEED = 100
     RUN_SPEED = 10
     JUMP_FORCE = -20
-    spritesheetJ = spritesheet.Spritesheet('JonesSheet.png')
 
-    def __init__(self, image, position):
+    def __init__(self, image_loc, position):
         pygame.sprite.Sprite.__init__(self)
-        self.image = self.spritesheetJ.image_at((128,0,32,64),colorkey=-1)
+        self.sprites = spritesheet.Spritesheet(image_loc)
+        self.image = self.sprites.image_at(
+                (128,0,32,64),colorkey=-1)
         self.rect = self.image.get_rect()
         self.position = position
         self.direction = 'right'
@@ -28,7 +30,7 @@ class CharSprite(pygame.sprite.Sprite):
     def update(self, deltat):
         # SIMULATION
         # FIXME: This is a placeholder for collision
-        if self.dy >= 0 and self.position[1] >= 580:
+        if self.dy >= 0 and self.position[1] >= 400:
             if self.dy > 0 or self.dy < -14:
                 self.idle()
         # Gravity as a constant falling force
@@ -61,11 +63,13 @@ class CharSprite(pygame.sprite.Sprite):
                 (352,0,32,64),(382,0,32,64)],
             'run': [
                 (480, 0, 32, 64),(512,0,32,64),(544,0,32,64),
-                (576,0,32,64),(608,0,32,64),] }
-        self.curr_anim = self.spritesheetJ.images_at(
+                (576,0,32,64),(608,0,32,64),],
+            'fall': [
+                (288,0,32,64)]}
+        self.curr_anim = self.sprites.images_at(
             animations[name], colorkey=-1)
         if self.direction == 'left':
-            self.curr_anim = self.spritesheetJ.imagesR_at(
+            self.curr_anim = self.sprites.imagesR_at(
                 animations[name], colorkey=-1)
         self.frame = 0
 
@@ -89,23 +93,24 @@ class CharSprite(pygame.sprite.Sprite):
                     self.direction = 'right'
                     self.anim_cycle('run')
 
-    def jump(self, direction):
+    def jump(self):
         if not self.fall:
             self.dy += self.JUMP_FORCE
             self.fall = True
+            self.anim_cycle('jump')
 
 # CREATE CHARACTER AND RUN
 rect = screen.get_rect()
-character = CharSprite('idle', rect.center)
+character = CharSprite('JonesSheet.png', rect.center)
 p_group = pygame.sprite.RenderPlain(character)
 while 1:
     # USER INPUT
-    deltat = clock.tick(30)
+    deltat = clock.tick(15)
     for event in pygame.event.get():
         if not hasattr(event, 'key'): continue
         down = event.type == KEYDOWN
         if event.type == KEYDOWN:
-            if event.key == K_w: character.jump('right')
+            if event.key == K_w: character.jump()
             if event.key == K_d: character.run('right')
             if event.key == K_a: character.run('left')
         if event.type == KEYUP:
