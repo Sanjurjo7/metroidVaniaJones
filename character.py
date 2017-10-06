@@ -1,6 +1,8 @@
 import pygame, spritesheet
 
 class CharSprite(pygame.sprite.Sprite):
+    # CONSTANTS
+    # TODO: Should these be alterable?
     GRAVITY = 2
     MAX_DOWN_SPEED = 100
     RUN_SPEED = 10
@@ -94,5 +96,4 @@ class CharSprite(pygame.sprite.Sprite):
             self.dy += self.JUMP_FORCE
             self.fall = True
             self.anim_cycle('jump')
-
 
